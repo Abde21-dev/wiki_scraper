@@ -1,10 +1,9 @@
 import requests
 from bs4 import BeautifulSoup
 
-# L'URL de la page Wikipédia à scraper
-url = "https://fr.wikipedia.org/wiki/Cordill%C3%A8re_des_Andes"
+# On peux changer l'URL avec une autre page, en gardant ?printable=yes à la fin
+url = "https://fr.wikipedia.org/wiki/tahiti?printable=yes"
 
-# On ajoute un "User-Agent" pour imiter un vrai navigateur
 headers = {
     "User-Agent": (
         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
@@ -14,40 +13,36 @@ headers = {
     "Accept-Language": "fr-FR,fr;q=0.9"
 }
 
-# Télécharger le contenu de la page
+# Téléchargement de la page
 response = requests.get(url, headers=headers)
-
 print("Code de réponse HTTP :", response.status_code)
 
-# Vérifier que le téléchargement s'est bien passé
 if response.status_code != 200:
     print("Erreur lors du téléchargement :", response.status_code)
     exit()
 
-# Analyser le HTML avec BeautifulSoup
-soup = BeautifulSoup(response.text, "html.parser")
+# Pour parser le HTML avec BeautifulSoup
+html = response.text
+print("Taille du HTML reçu :", len(html), "caractères")
 
-# Récupérer le titre de la page
-titre = soup.find("h1").text
-print("Titre de la page :", titre)
+soup = BeautifulSoup(html, "html.parser")
 
-# Récupérer le premier vrai paragraphe
-paragraphe = None
-for p in soup.find_all("p"):
+paragraphes = soup.find_all("p")
+print("Nombre de paragraphes trouvés :", len(paragraphes))
+
+texte_final = ""
+
+for p in paragraphes:
     texte = p.get_text(strip=True)
-    if texte:  # si le paragraphe contient du texte
-        paragraphe = texte
-        break
+    if texte:  # on ignore les paragraphes vides
+        texte_final += texte + "\n\n"
 
-print("\nPremier paragraphe :\n")
-print(paragraphe)
+print("\n===== APERÇU DU CONTENU =====\n")
+print(texte_final[:1500])  # on affiche les ~1500 premiers caractères
 
-# Récupérer tous les titres de sections (h2)
-print("\nTitres des sections :")
-sections = soup.find_all("h2")
+#Sauvegarde du contenu
+nom_fichier = "contenu_wikipedia.txt"
+with open(nom_fichier, "w", encoding="utf-8") as f:
+    f.write(texte_final)
 
-for s in sections:
-    titre_section = s.text.strip()
-    titre_section = titre_section.replace("[modifier | modifier le code]", "")
-    print("-", titre_section)
-
+print(f"\nTout le contenu texte a été enregistré dans le fichier : {nom_fichier}")
