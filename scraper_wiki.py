@@ -2,7 +2,7 @@ import requests
 from bs4 import BeautifulSoup
 
 # L'URL de la page Wikipédia à scraper
-url = "https://fr.wikipedia.org/wiki/Annapurna"
+url = "https://fr.wikipedia.org/wiki/Cordill%C3%A8re_des_Andes"
 
 # On ajoute un "User-Agent" pour imiter un vrai navigateur
 headers = {
@@ -31,8 +31,14 @@ soup = BeautifulSoup(response.text, "html.parser")
 titre = soup.find("h1").text
 print("Titre de la page :", titre)
 
-# Récupérer le premier paragraphe
-paragraphe = soup.find("p").text
+# Récupérer le premier vrai paragraphe
+paragraphe = None
+for p in soup.find_all("p"):
+    texte = p.get_text(strip=True)
+    if texte:  # si le paragraphe contient du texte
+        paragraphe = texte
+        break
+
 print("\nPremier paragraphe :\n")
 print(paragraphe)
 
@@ -44,3 +50,4 @@ for s in sections:
     titre_section = s.text.strip()
     titre_section = titre_section.replace("[modifier | modifier le code]", "")
     print("-", titre_section)
+
